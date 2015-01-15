@@ -4,7 +4,7 @@ require_relative './lib/category'
 require_relative './lib/contact'
 require_relative './lib/client'
 require 'active_support'
-require 'pry'
+require 'pry' if development?
 
 after do
   ActiveRecord::Base.connection.close
