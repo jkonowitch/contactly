@@ -2,67 +2,78 @@ require 'sinatra'
 require_relative './db/connection'
 require_relative './lib/category'
 require_relative './lib/contact'
+require_relative './lib/client'
 require 'active_support'
+require 'pry'
 
 after do
   ActiveRecord::Base.connection.close
 end
 
-before do
+before '/*' do
   content_type :json
 end
 
-get("/categories") do
-  Category.all.to_json
+before '/api/*' do
+  unless params["api_key"] && ( @client = Client.find_by({key: params["api_key"]}) )
+    halt 400, 'Please provide an API key'
+  end
 end
 
-get("/categories/:id") do
-  Category.find(params[:id]).to_json(:include => :contacts)
+post('/clients') do
+  Client.create().to_json
 end
 
-post("/categories") do
-  category = Category.create(category_params(params))
+get("/api/categories") do
+  @client.categories.to_json
+end
+
+get("/api/categories/:id") do
+  @client.categories.find(params[:id]).to_json(:include => :contacts)
+end
+
+post("/api/categories") do
+  category = @client.categories.create(category_params(params))
 
   category.to_json
 end
 
-put("/categories/:id") do
-  category = Category.find_by(id: params[:id])
+put("/api/categories/:id") do
+  category = @client.categories.find_by(id: params[:id])
   category.update(category_params(params))
 
   category.to_json
 end
 
-delete("/categories/:id") do
-  category = Category.find(params[:id])
+delete("/api/categories/:id") do
+  category = @client.categories.find(params[:id])
   category.destroy
   
   category.to_json
 end
 
-get("/contacts") do
-  Contact.all.to_json
+get("/api/contacts") do
+  @client.contacts.to_json
 end
 
-get("/contacts/:id") do
-  id = params[:id]
-  Contact.find(id).to_json
+get("/api/contacts/:id") do
+  @client.contacts.find(params[:id]).to_json
 end
 
-post("/contacts") do
-  contact = Contact.create(contact_params(params))
+post("/api/contacts") do
+  contact = @client.contacts.create(contact_params(params))
   contact.to_json
 end
 
-put("/contacts/:id") do
-  contact = Contact.find(params[:id])
+put("/api/contacts/:id") do
+  contact = @client.contacts.find(params[:id])
   contact.update(contact_params(params))
 
   contact.to_json
 end
 
-delete("/contacts/:id") do
-  contact = Contact.find(params[:id])
+delete("/api/contacts/:id") do
+  contact = @client.contacts.find(params[:id])
   contact.destroy
 
   contact.to_json

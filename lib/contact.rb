@@ -1,7 +1,5 @@
 require 'active_record'
 
 class Contact < ActiveRecord::Base
-  def category
-    Category.find_by({id: self.category_id})
-  end
+  belongs_to :category
 end
